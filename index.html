@@ -207,16 +207,32 @@ h2 em { font-style: normal; color: var(--orange); }
 .checks li::before { content: "[x] "; color: var(--green); }
 
 /* ================= SLIDE 7 — Closing ================= */
-#s7 { align-items: center; justify-content: center; text-align: center; }
-.q-big { font-size: 190px; font-weight: 900; line-height: 1; color: var(--orange); text-shadow: 0 0 60px rgba(255,153,0,.5); letter-spacing: -.04em; animation: float 4s ease-in-out infinite; }
+#s7 { flex-direction: row; align-items: center; gap: 48px; }
+.close-left { flex: 1; min-width: 0; }
+.q-big { font-size: 130px; font-weight: 900; line-height: 1; color: var(--orange); text-shadow: 0 0 60px rgba(255,153,0,.5); letter-spacing: -.04em; animation: float 4s ease-in-out infinite; }
 @keyframes float { 50% { transform: translateY(-10px); } }
-#s7 h2 { font-size: 56px; margin-top: 6px; }
-.wrap-up { display: flex; gap: 14px; margin-top: 30px; justify-content: center; flex-wrap: wrap; }
-.wrap-up .card { width: 270px; text-align: left; padding: 16px 18px; }
+#s7 h2 { font-size: 60px; margin-top: 2px; }
+.wrap-up { display: grid; gap: 12px; margin-top: 24px; }
+.wrap-up .card { display: flex; gap: 14px; align-items: center; padding: 12px 18px; }
 .wrap-up .card .ic { font-size: 24px; }
-.wrap-up .card p { font-size: 16px; margin-top: 6px; color: #dbe5ef; line-height: 1.35; }
-.thanks { margin-top: 28px; font-family: var(--mono); color: var(--muted); font-size: 18px; }
+.wrap-up .card p { font-size: 17px; color: #dbe5ef; line-height: 1.3; }
+.thanks { margin-top: 22px; font-family: var(--mono); color: var(--muted); font-size: 18px; }
 .thanks b { color: var(--green); }
+.profile { width: 400px; flex: none; text-align: center; padding: 30px 26px; border-color: rgba(255,153,0,.35); }
+.avatar { width: 190px; height: 190px; border-radius: 50%; margin: 0 auto 18px; position: relative; overflow: hidden;
+  border: 3px solid var(--orange); box-shadow: 0 0 0 6px rgba(255,153,0,.15), 0 0 40px rgba(255,153,0,.35);
+  background: linear-gradient(135deg, var(--cyan), var(--blue)); display: grid; place-items: center; }
+.avatar .initials { font-size: 64px; font-weight: 900; color: #fff; }
+.avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.profile h3 { font-size: 28px; }
+.profile .role { font-family: var(--mono); font-size: 14px; color: var(--cyan); margin: 4px 0 18px; }
+.socials { list-style: none; display: grid; gap: 9px; text-align: left; }
+.socials a { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 10px; background: #1a2433; border: 1px solid var(--line);
+  color: var(--text); text-decoration: none; font-family: var(--mono); font-size: 15px; transition: .2s; }
+.socials a:hover { border-color: var(--orange); transform: translateX(4px); box-shadow: 0 0 14px rgba(255,153,0,.25); }
+.si { min-width: 34px; text-align: center; font-weight: 700; font-size: 13px; padding: 3px 0; border-radius: 6px; color: var(--orange); background: rgba(255,153,0,.12); border: 1px solid rgba(255,153,0,.45); }
+.si.blue { color: #4cc9ea; background: rgba(0,161,201,.12); border-color: rgba(0,161,201,.5); }
+.si.green { color: var(--green); background: rgba(74,222,128,.1); border-color: rgba(74,222,128,.45); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: .001s !important; }
@@ -357,39 +373,39 @@ h2 em { font-style: normal; color: var(--orange); }
         <g id="packets"></g>
 
         <!-- Nodes -->
-        <g class="node" id="n0" transform="translate(20,148)">
+        <g transform="translate(20,148)"><g class="node" id="n0">
           <rect class="body" width="170" height="84" rx="12"/>
           <text class="ty" x="14" y="24" fill="#EC7211">BORDE</text>
           <circle class="status-dot" cx="152" cy="20" r="4"/>
           <text class="nm" x="14" y="50">ESP32 + Cámara</text><text class="sb" x="14" y="70">pan/tilt · cuadros</text>
-        </g>
-        <g class="node" id="n1" transform="translate(240,148)">
+        </g></g>
+        <g transform="translate(240,148)"><g class="node" id="n1">
           <rect class="body" width="170" height="84" rx="12"/>
           <text class="ty" x="14" y="24" fill="#FF9900">INGESTA</text>
           <text class="nm" x="14" y="50">Amazon Kinesis</text><text class="sb" x="14" y="70">streaming de cuadros</text>
-        </g>
-        <g class="node" id="n2" transform="translate(460,148)">
+        </g></g>
+        <g transform="translate(460,148)"><g class="node" id="n2">
           <rect class="body" width="170" height="84" rx="12"/>
           <text class="ty" x="14" y="24" fill="#FF9900">CÓMPUTO</text>
           <text class="nm" x="14" y="50">AWS Lambda</text><text class="sb" x="14" y="70">sin servidores</text>
-        </g>
-        <g class="node" id="n3" transform="translate(700,28)">
+        </g></g>
+        <g transform="translate(700,28)"><g class="node" id="n3">
           <rect class="body" width="170" height="84" rx="12"/>
           <text class="ty" x="14" y="24" fill="#4cc9ea">VISIÓN · IA</text>
           <text class="nm" x="14" y="50">Rekognition</text><text class="sb" x="14" y="70">+ YOLO · ¿persona?</text>
-        </g>
-        <g class="node" id="n4" transform="translate(700,268)">
+        </g></g>
+        <g transform="translate(700,268)"><g class="node" id="n4">
           <rect class="body" width="170" height="84" rx="12"/>
           <text class="ty" x="14" y="24" fill="#4ade80">ALMACÉN</text>
           <text class="nm" x="14" y="50">Amazon S3</text><text class="sb" x="14" y="70">fotos · evidencia</text>
-        </g>
-        <g class="node" id="n5" transform="translate(930,148)">
+        </g></g>
+        <g transform="translate(930,148)"><g class="node" id="n5">
           <circle class="pulse" cx="85" cy="42" r="60"/><circle class="pulse p2" cx="85" cy="42" r="60"/>
           <rect class="body" width="170" height="84" rx="12"/>
           <text class="ty" x="14" y="24" fill="#FF5C5C">ALERTA</text>
           <circle class="status-dot" cx="152" cy="20" r="4"/>
           <text class="nm" x="14" y="50">Amazon SNS</text><text class="sb" x="14" y="70">push · SMS · correo</text>
-        </g>
+        </g></g>
       </svg>
     </div>
     <div class="caption rv" style="--i:3">
@@ -443,14 +459,31 @@ h2 em { font-style: normal; color: var(--orange); }
 
   <!-- =============== 7. CLOSING / Q&A =============== -->
   <section class="slide" id="s7">
-    <div class="q-big rv" style="--i:0">?</div>
-    <h2 class="rv" style="--i:1">¿Preguntas?</h2>
-    <div class="wrap-up">
-      <div class="card rv" style="--i:2"><div class="ic">♻️</div><p><b>Rescata</b> hardware viejo en lugar de tirarlo.</p></div>
-      <div class="card rv" style="--i:3"><div class="ic">🧠</div><p><b>Cerebros baratos</b> como el ESP32 conectan cualquier cosa.</p></div>
-      <div class="card rv" style="--i:4"><div class="ic">☁️</div><p><b>La nube</b> convierte un aparato en un sistema inteligente.</p></div>
+    <div class="close-left">
+      <div class="q-big rv" style="--i:0">?</div>
+      <h2 class="rv" style="--i:1">¿Preguntas?</h2>
+      <div class="wrap-up">
+        <div class="card rv" style="--i:2"><div class="ic">♻️</div><p><b>Rescata</b> hardware viejo en lugar de tirarlo.</p></div>
+        <div class="card rv" style="--i:3"><div class="ic">🧠</div><p><b>Cerebros baratos</b> como el ESP32 conectan cualquier cosa.</p></div>
+        <div class="card rv" style="--i:4"><div class="ic">☁️</div><p><b>La nube</b> convierte un aparato en un sistema inteligente.</p></div>
+      </div>
+      <p class="thanks rv" style="--i:5">$ echo "¡Gracias!" <b>&#10003;</b></p>
     </div>
-    <p class="thanks rv" style="--i:5">$ echo "¡Gracias!" <b>&#10003;</b></p>
+    <aside class="profile card rv" style="--i:3">
+      <div class="avatar">
+        <span class="initials">DP</span>
+        <!-- Pon tu foto junto a este archivo con el nombre foto.jpg; si no existe se muestran las iniciales -->
+        <img src="diego.jpg" alt="Diego Pérez Luna" onerror="this.style.display='none'">
+      </div>
+      <h3>Diego Pérez Luna</h3>
+      <p class="role">// hacker · maker · nube · dev</p>
+      <ul class="socials">
+        <li><a href="https://www.instagram.com/diego.oncloud" target="_blank" rel="noopener"><span class="si">IG</span>@diego.oncloud</a></li>
+        <li><a href="https://www.instagram.com/diego_perez_luna" target="_blank" rel="noopener"><span class="si">IG</span>@diego_perez_luna</a></li>
+        <li><a href="https://www.linkedin.com/in/diego-perez-luna" target="_blank" rel="noopener"><span class="si blue">in</span>diego-perez-luna</a></li>
+        <li><a href="https://github.com/diegodev-01" target="_blank" rel="noopener"><span class="si green">GH</span>diegodev-01</a></li>
+      </ul>
+    </aside>
   </section>
 
 </main>
