@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AWS en los años 90</title>
+<style>
+/* =====================================================================
+   AWS in the 90s — single-file presentation
+   Design tokens, layout, slide transitions, component styles.
+   The stage is a fixed 1280x720 canvas scaled to fit any screen (16:9).
+   ===================================================================== */
+:root {
+  --bg: #0F171E;
+  --bg-2: #161E2D;
+  --card: #232F3E;
+  --card-2: #1b2535;
+  --orange: #FF9900;
+  --orange-2: #EC7211;
+  --cyan: #00A1C9;
+  --blue: #3B82F6;
+  --green: #4ADE80;
+  --red: #FF5C5C;
+  --text: #F2F5F8;
+  --muted: #9FB0C3;
+  --line: rgba(255,255,255,.09);
+  --sans: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", "Fira Code", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--sans); }
+body {
+  background:
+    radial-gradient(1200px 700px at 85% -10%, rgba(0,161,201,.14), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(255,153,0,.12), transparent 60%),
+    var(--bg);
+}
+
+/* ---------- Viewport chrome (progress, counter, controls) ---------- */
+#progress { position: fixed; top: 0; left: 0; height: 4px; width: 0; z-index: 50;
+  background: linear-gradient(90deg, var(--orange-2), var(--orange), #ffc766);
+  box-shadow: 0 0 14px rgba(255,153,0,.7); transition: width .5s cubic-bezier(.2,.8,.2,1); }
+#hud { position: fixed; right: 18px; bottom: 14px; z-index: 50; display: flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: 13px; color: var(--muted); }
+#hud button { background: rgba(35,47,62,.85); color: var(--text); border: 1px solid var(--line); border-radius: 8px;
+  width: 38px; height: 34px; cursor: pointer; font-size: 16px; transition: .2s; backdrop-filter: blur(6px); }
+#hud button:hover { border-color: var(--orange); color: var(--orange); box-shadow: 0 0 12px rgba(255,153,0,.35); transform: translateY(-1px); }
+#hud button:disabled { opacity: .3; cursor: default; transform: none; box-shadow: none; border-color: var(--line); color: var(--text); }
+#counter { min-width: 56px; text-align: center; color: var(--text); }
+#hint { position: fixed; left: 18px; bottom: 18px; z-index: 50; font-family: var(--mono); font-size: 12px; color: #5f7186; }
+#hint kbd { border: 1px solid #3a4a5e; border-radius: 4px; padding: 1px 5px; color: var(--muted); }
+
+/* ---------- Stage ---------- */
+#stage { position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; transform-origin: center center; }
+.slide {
+  position: absolute; inset: 0; padding: 56px 80px 64px; display: flex; flex-direction: column;
+  opacity: 0; visibility: hidden; transform: translateX(60px) scale(.98);
+  transition: opacity .55s ease, transform .6s cubic-bezier(.2,.8,.2,1), visibility 0s linear .6s;
+}
+.slide.before { transform: translateX(-60px) scale(.98); }
+.slide.active { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+
+/* Staggered entrance: any element with .rv and a --i index */
+.rv { opacity: 0; transform: translateY(26px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1); }
+.slide.active .rv { opacity: 1; transform: none; transition-delay: calc(var(--i, 0) * 90ms + 280ms); }
+
+/* ---------- Shared typography ---------- */
+.kicker { font-family: var(--mono); font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--orange); margin-bottom: 10px; }
+.kicker::before { content: "> "; color: var(--cyan); }
+h2 { font-size: 46px; line-height: 1.08; font-weight: 800; letter-spacing: -.02em; margin-bottom: 8px; }
+h2 em { font-style: normal; color: var(--orange); }
+.lead { font-size: 21px; color: var(--muted); line-height: 1.45; max-width: 860px; }
+.tag { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; padding: 3px 9px; border-radius: 999px;
+  border: 1px solid rgba(255,153,0,.5); color: var(--orange); background: rgba(255,153,0,.08); white-space: nowrap; }
+.tag.blue { border-color: rgba(0,161,201,.55); color: #4cc9ea; background: rgba(0,161,201,.08); }
+.tag.green { border-color: rgba(74,222,128,.5); color: var(--green); background: rgba(74,222,128,.08); }
+
+.card { background: linear-gradient(180deg, var(--card), var(--card-2)); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+.card:hover { transform: translateY(-5px); border-color: rgba(255,153,0,.7); box-shadow: 0 12px 30px rgba(0,0,0,.4), 0 0 24px rgba(255,153,0,.18); }
+/* hover must beat the entrance transform */
+.slide.active .card.rv:hover { transform: translateY(-5px); }
+
+.term { font-family: var(--mono); background: #0a1118; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.term .bar { background: #1a2433; padding: 8px 14px; display: flex; gap: 7px; align-items: center; font-size: 12px; color: var(--muted); }
+.term .bar i { width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; display: inline-block; }
+.term .bar i:nth-child(2) { background: #febc2e; } .term .bar i:nth-child(3) { background: #28c840; }
+.term .bar span { margin-left: 8px; }
+.term pre { padding: 14px 18px; font-size: 14px; line-height: 1.6; color: #cfe3f3; white-space: pre-wrap; }
+.c-o { color: var(--orange); } .c-b { color: #4cc9ea; } .c-g { color: var(--green); } .c-m { color: #6c7f93; }
+
+/* ================= SLIDE 1 — Title ================= */
+#s1 { justify-content: center; align-items: flex-start; }
+#s1::before { /* faint CRT scanlines */
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 4px); }
+.boot { font-family: var(--mono); color: var(--green); font-size: 16px; margin-bottom: 26px; min-height: 22px; }
+.boot .cursor { display: inline-block; width: 10px; height: 18px; background: var(--green); vertical-align: -3px; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.title { font-size: 128px; line-height: .95; font-weight: 900; letter-spacing: -.04em; position: relative; }
+.title .aws { color: var(--orange); text-shadow: 0 0 40px rgba(255,153,0,.45); }
+.title .n90 { background: linear-gradient(90deg, var(--cyan), var(--blue), #a78bfa); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.title .glitch { position: relative; display: inline-block; }
+.title .glitch::before, .title .glitch::after { content: attr(data-t); position: absolute; left: 0; top: 0; width: 100%; overflow: hidden; background: none; }
+.title .glitch::before { color: #00e5ff; clip-path: inset(0 0 60% 0); animation: glitchA 5s infinite steps(1); opacity: 0; -webkit-text-fill-color: #00e5ff; }
+.title .glitch::after { color: #ff3d7f; clip-path: inset(55% 0 0 0); animation: glitchB 5s infinite steps(1); opacity: 0; -webkit-text-fill-color: #ff3d7f; }
+@keyframes glitchA { 0%,92%,100% { opacity: 0; transform: none; } 93% { opacity: .8; transform: translate(-5px,0); } 95% { opacity: .8; transform: translate(4px,-2px); } 97% { opacity: 0; } }
+@keyframes glitchB { 0%,93%,100% { opacity: 0; transform: none; } 94% { opacity: .8; transform: translate(5px,0); } 96% { opacity: .8; transform: translate(-4px,2px); } 98% { opacity: 0; } }
+.subtitle { font-size: 27px; color: #cdd8e4; margin-top: 26px; max-width: 760px; line-height: 1.35; }
+.subtitle b { color: var(--orange); font-weight: 700; }
+.es { font-family: var(--mono); font-size: 17px; color: var(--muted); margin-top: 14px; }
+.title-badges { display: flex; gap: 10px; margin-top: 34px; flex-wrap: wrap; }
+.title-cam { position: absolute; right: 70px; top: 120px; width: 340px; opacity: .95; }
+.title-cam .lens-ring { animation: spin 18s linear infinite; transform-origin: 170px 150px; }
+.title-cam .rec { animation: blink 1.2s steps(2) infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.cta { margin-top: 26px; font-family: var(--mono); font-size: 14px; color: var(--muted); }
+.cta b { color: var(--orange); animation: nudge 1.4s ease-in-out infinite; display: inline-block; }
+@keyframes nudge { 50% { transform: translateX(7px); } }
+
+/* ================= SLIDE 2 — E-waste ================= */
+.cols { display: grid; gap: 34px; flex: 1; min-height: 0; margin-top: 22px; }
+#s2 .cols { grid-template-columns: 1.05fr 1fr; }
+.list { list-style: none; display: grid; gap: 14px; }
+.list li { display: flex; gap: 14px; align-items: flex-start; font-size: 21px; line-height: 1.38; color: #dbe5ef; }
+.list li .ic { flex: 0 0 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-size: 19px;
+  background: rgba(255,153,0,.12); border: 1px solid rgba(255,153,0,.4); }
+.list li b { color: #fff; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-content: start; }
+.stat .num { font-size: 56px; font-weight: 900; letter-spacing: -.03em; color: var(--orange); line-height: 1; }
+.stat .num small { font-size: 24px; color: var(--muted); font-weight: 700; margin-left: 4px; }
+.stat p { margin-top: 8px; font-size: 15px; color: var(--muted); line-height: 1.35; }
+.ladder { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.ladder .step { border-radius: 12px; padding: 14px 12px; text-align: center; font-family: var(--mono); font-size: 14px; border: 1px solid var(--line); background: #1a2433; color: var(--muted); position: relative; }
+.ladder .step.best { border-color: var(--green); color: var(--green); background: rgba(74,222,128,.08); box-shadow: 0 0 20px rgba(74,222,128,.2); }
+.ladder .step strong { display: block; font-size: 17px; margin-bottom: 3px; color: inherit; }
+.src { grid-column: 1 / -1; font-family: var(--mono); font-size: 11.5px; color: #5f7186; }
+.era { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
+
+/* ================= SLIDE 3 — Hardware ================= */
+#s3 .cols { grid-template-columns: 1fr 1.1fr; }
+.pins { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+.rig { display: grid; gap: 14px; align-content: start; }
+.views { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.view { background: #0a1118; border: 1px solid var(--line); border-radius: 12px; padding: 10px 10px 6px; position: relative; }
+.view .vt { font-family: var(--mono); font-size: 11.5px; color: var(--cyan); letter-spacing: .1em; }
+.view svg { width: 100%; height: 190px; display: block; }
+.readout { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 15px; }
+.readout .val { color: var(--orange); font-weight: 700; min-width: 64px; display: inline-block; }
+.pad { display: grid; grid-template-columns: repeat(3, 38px); grid-template-rows: repeat(2, 34px); gap: 5px; margin-left: auto; }
+.pad button { background: var(--card); border: 1px solid var(--line); color: var(--text); border-radius: 8px; cursor: pointer; font-size: 14px; transition: .15s; }
+.pad button:hover { border-color: var(--orange); color: var(--orange); }
+.pad button:active { transform: scale(.92); }
+.pad .up { grid-column: 2; grid-row: 1; } .pad .lf { grid-column: 1; grid-row: 2; } .pad .dn { grid-column: 2; grid-row: 2; } .pad .rt { grid-column: 3; grid-row: 2; }
+.cone { transition: none; }
+
+/* ================= SLIDE 4 — Architecture ================= */
+#s4 h2 { margin-bottom: 2px; }
+#s4 .diagram { margin-top: 6px; flex: 1; min-height: 0; position: relative; }
+#diagram { width: 100%; height: 100%; display: block; overflow: visible; }
+.node { opacity: 0; transform-box: fill-box; transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1); transform: translateY(12px) scale(.94); cursor: default; }
+.node.on { opacity: 1; transform: none; }
+.node rect.body { fill: #232F3E; stroke: rgba(255,255,255,.14); stroke-width: 1.4; transition: stroke .25s, filter .25s; }
+.node:hover rect.body, .node.focus rect.body { stroke: var(--orange); filter: drop-shadow(0 0 12px rgba(255,153,0,.55)); }
+.node .nm { fill: #fff; font: 700 17px var(--sans); }
+.node .sb { fill: var(--muted); font: 12.5px var(--mono); }
+.node .ty { font: 700 11px var(--mono); letter-spacing: .1em; }
+.edge { fill: none; stroke: rgba(255,153,0,.28); stroke-width: 2.2; stroke-dasharray: 6 7; opacity: 0; transition: opacity .6s; }
+.edge.on { opacity: 1; animation: dash 1.2s linear infinite; }
+@keyframes dash { to { stroke-dashoffset: -26; } }
+.pkt { fill: var(--orange); filter: drop-shadow(0 0 6px #ff9900); }
+.pkt.blue { fill: #4cc9ea; filter: drop-shadow(0 0 6px #00a1c9); }
+.pulse { fill: none; stroke: var(--red); stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.node.alarm .pulse { animation: ping 1.8s ease-out infinite; }
+.node.alarm .pulse.p2 { animation-delay: .9s; }
+@keyframes ping { 0% { opacity: .85; transform: scale(1); } 100% { opacity: 0; transform: scale(1.35); } }
+.status-dot { fill: var(--green); animation: dotpulse 1.6s ease-in-out infinite; }
+.node.alarm .status-dot { fill: var(--red); animation-duration: .8s; }
+@keyframes dotpulse { 50% { opacity: .25; } }
+.caption { display: flex; gap: 18px; align-items: center; background: linear-gradient(180deg, var(--card), var(--card-2)); border: 1px solid var(--line);
+  border-left: 4px solid var(--orange); border-radius: 12px; padding: 14px 20px; min-height: 84px; }
+.caption .stepn { font-family: var(--mono); font-size: 13px; color: var(--orange); white-space: nowrap; }
+.caption h4 { font-size: 20px; margin-bottom: 3px; }
+.caption p { font-size: 16px; color: var(--muted); line-height: 1.4; }
+.caption .dots { margin-left: auto; display: flex; gap: 6px; }
+.caption .dots i { width: 9px; height: 9px; border-radius: 50%; background: #34445a; transition: .3s; }
+.caption .dots i.on { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+
+/* ================= SLIDE 5 — Why AWS ================= */
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 26px; flex: 1; align-content: start; }
+.benefit .bi { font-size: 30px; margin-bottom: 8px; }
+.benefit h3 { font-size: 21px; margin-bottom: 6px; }
+.benefit p { font-size: 16px; line-height: 1.42; color: var(--muted); }
+.benefit .tag { margin-top: 12px; display: inline-block; }
+.punch { margin-top: 18px; font-family: var(--mono); font-size: 18px; color: var(--muted); }
+.punch b { color: var(--orange); }
+
+/* ================= SLIDE 6 — Lessons ================= */
+#s6 .cols { grid-template-columns: 1.25fr 1fr; }
+.chal { display: grid; gap: 12px; align-content: start; }
+.chal .card { display: grid; grid-template-columns: 1fr; gap: 3px; padding: 14px 18px; }
+.chal .q { font-size: 18px; font-weight: 700; display: flex; gap: 10px; align-items: center; }
+.chal .q .tag { font-size: 11px; }
+.chal .a { font-size: 15.5px; color: var(--muted); line-height: 1.4; }
+.chal .a b { color: var(--green); font-weight: 600; }
+.checks { list-style: none; display: grid; gap: 4px; padding: 6px 18px 12px; font-family: var(--mono); font-size: 15px; line-height: 1.5; color: #cfe3f3; }
+.checks li::before { content: "[x] "; color: var(--green); }
+
+/* ================= SLIDE 7 — Closing ================= */
+#s7 { align-items: center; justify-content: center; text-align: center; }
+.q-big { font-size: 190px; font-weight: 900; line-height: 1; color: var(--orange); text-shadow: 0 0 60px rgba(255,153,0,.5); letter-spacing: -.04em; animation: float 4s ease-in-out infinite; }
+@keyframes float { 50% { transform: translateY(-10px); } }
+#s7 h2 { font-size: 56px; margin-top: 6px; }
+.wrap-up { display: flex; gap: 14px; margin-top: 30px; justify-content: center; flex-wrap: wrap; }
+.wrap-up .card { width: 270px; text-align: left; padding: 16px 18px; }
+.wrap-up .card .ic { font-size: 24px; }
+.wrap-up .card p { font-size: 16px; margin-top: 6px; color: #dbe5ef; line-height: 1.35; }
+.thanks { margin-top: 28px; font-family: var(--mono); color: var(--muted); font-size: 18px; }
+.thanks b { color: var(--green); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: .001s !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="hint"><kbd>←</kbd> <kbd>→</kbd> / <kbd>Espacio</kbd> navegar · <kbd>F</kbd> pantalla completa</div>
+<div id="hud">
+  <button id="prev" aria-label="Anterior">◀</button>
+  <span id="counter">1 / 7</span>
+  <button id="next" aria-label="Siguiente">▶</button>
+  <button id="fs" aria-label="Pantalla completa" title="Pantalla completa (F)">⛶</button>
+</div>
+
+<main id="stage">
+
+  <!-- =============== 1. TITLE =============== -->
+  <section class="slide" id="s1">
+    <svg class="title-cam rv" style="--i:6" viewBox="0 0 340 300" aria-hidden="true">
+      <rect x="40" y="80" width="260" height="150" rx="22" fill="#232F3E" stroke="#3a4a5e" stroke-width="2"/>
+      <rect x="60" y="100" width="100" height="26" rx="6" fill="#0a1118"/>
+      <text x="68" y="118" font-family="monospace" font-size="13" fill="#4ade80">CAM-01 ● ARMADA</text>
+      <circle cx="170" cy="150" r="64" fill="#0F171E" stroke="#FF9900" stroke-width="3"/>
+      <g class="lens-ring"><circle cx="170" cy="150" r="52" fill="none" stroke="#00A1C9" stroke-width="2" stroke-dasharray="10 8"/></g>
+      <circle cx="170" cy="150" r="34" fill="#161E2D" stroke="#3B82F6" stroke-width="2"/>
+      <circle cx="170" cy="150" r="14" fill="#00A1C9" opacity=".7"/>
+      <circle cx="158" cy="138" r="5" fill="#fff" opacity=".6"/>
+      <circle class="rec" cx="270" cy="108" r="7" fill="#FF5C5C"/>
+      <rect x="140" y="230" width="60" height="26" fill="#2c3b4f"/>
+      <rect x="95" y="254" width="150" height="14" rx="6" fill="#3a4a5e"/>
+      <text x="40" y="292" font-family="monospace" font-size="12" fill="#6c7f93">ESP32 · PAN/TILT · 199X</text>
+    </svg>
+    <div class="boot rv" style="--i:0"><span id="bootText"></span><span class="cursor"></span></div>
+    <h1 class="title rv" style="--i:1">
+      <span class="aws glitch" data-t="AWS">AWS</span><br>
+      <span class="n90">en los 90</span>
+    </h1>
+    <p class="subtitle rv" style="--i:2">Una cámara de seguridad de los años 90 con una <b>segunda vida</b> gracias a la Nube&nbsp;+&nbsp;IA.</p>
+    <p class="es rv" style="--i:3">// AWS en los años 90: hardware de ayer, nube de hoy</p>
+    <div class="title-badges rv" style="--i:4">
+      <span class="tag">ESP32</span><span class="tag">Kinesis</span><span class="tag">Lambda</span>
+      <span class="tag blue">Rekognition + YOLO</span><span class="tag">S3</span><span class="tag">SNS</span>
+    </div>
+    <p class="cta rv" style="--i:5">Pulsa <b>→</b> o <b>Espacio</b> para arrancar</p>
+  </section>
+
+  <!-- =============== 2. PROBLEM / E-WASTE =============== -->
+  <section class="slide" id="s2">
+    <div class="kicker rv" style="--i:0">02 // El problema</div>
+    <h2 class="rv" style="--i:1">La tecnología vieja no es <em>basura</em>.<br>Es un proyecto sin terminar.</h2>
+    <div class="cols">
+      <div>
+        <ul class="list">
+          <li class="rv" style="--i:2"><span class="ic">📼</span><span>En el <b>Hacklab</b> encontramos una cámara de los 90: pesada, analógica y camino a la basura.</span></li>
+          <li class="rv" style="--i:3"><span class="ic">🛠️</span><span>Mentalidad maker: <b>no preguntes "¿funciona?"</b>, pregunta "¿en qué se puede convertir?"</span></li>
+          <li class="rv" style="--i:4"><span class="ic">♻️</span><span>Reutilizar mantiene lentes, carcasas y motores buenos <b>fuera del vertedero</b> y ahorra la energía de fabricar nuevos.</span></li>
+          <li class="rv" style="--i:5"><span class="ic">💾</span><span>Extra: nostalgia noventera pura. Tubos CRT, módems y plástico beige.</span></li>
+        </ul>
+        <div class="era rv" style="--i:6"><span class="tag">CRT</span><span class="tag">VHS</span><span class="tag">Módem 56k</span><span class="tag">Disquete</span><span class="tag blue">+ Nube e IA</span></div>
+      </div>
+      <div class="stats">
+        <div class="card stat rv" style="--i:3"><div class="num"><span data-count="62">0</span><small>Mt</small></div><p>de basura electrónica generadas en el mundo en 2022.</p></div>
+        <div class="card stat rv" style="--i:4"><div class="num"><span data-count="22.3" data-dec="1">0</span><small>%</small></div><p>se documentó como recolectado y reciclado correctamente.</p></div>
+        <div class="ladder rv" style="--i:5">
+          <div class="step"><strong>Reciclar</strong>fundirlo</div>
+          <div class="step best"><strong>Reutilizar ★</strong>darle un nuevo trabajo</div>
+          <div class="step"><strong>Vertedero</strong>perderlo para siempre</div>
+        </div>
+        <div class="src rv" style="--i:6">Fuente: Global E-waste Monitor 2024 de la ONU (UIT / UNITAR).</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============== 3. HARDWARE / ESP32 =============== -->
+  <section class="slide" id="s3">
+    <div class="kicker rv" style="--i:0">03 // Hardware</div>
+    <h2 class="rv" style="--i:1">Un <em>cerebro de $5</em> para un cuerpo de los 90</h2>
+    <p class="lead rv" style="--i:2">El ESP32 es el traductor: mueve la cámara en dos ejes y habla con la nube por Wi-Fi.</p>
+    <div class="cols">
+      <div>
+        <ul class="list">
+          <li class="rv" style="--i:3"><span class="ic">↔️</span><span><b>Pan</b>: un servo barre la cámara de izquierda a derecha.</span></li>
+          <li class="rv" style="--i:4"><span class="ic">↕️</span><span><b>Tilt</b>: un segundo servo la inclina arriba y abajo.</span></li>
+          <li class="rv" style="--i:5"><span class="ic">📡</span><span><b>Wi-Fi integrado</b>: sin gateway ni hardware extra, directo a AWS.</span></li>
+        </ul>
+        <div class="term rv" style="--i:6; margin-top:18px">
+          <div class="bar"><i></i><i></i><i></i><span>pan_tilt.ino</span></div>
+<pre><span class="c-m">// dos pines PWM, dos ejes</span>
+<span class="c-b">pan</span>.write(<span class="c-o">angle</span>);   <span class="c-m">// 0°–180°</span>
+<span class="c-b">tilt</span>.write(<span class="c-o">angle</span>);  <span class="c-m">// 30°–150°</span></pre>
+        </div>
+      </div>
+      <div class="rig rv" style="--i:4">
+        <div class="views">
+          <div class="view"><div class="vt">VISTA SUPERIOR · PAN</div>
+            <svg viewBox="0 0 200 190">
+              <circle cx="100" cy="150" r="130" fill="none" stroke="#1f2c3c"/><circle cx="100" cy="150" r="90" fill="none" stroke="#1f2c3c"/><circle cx="100" cy="150" r="50" fill="none" stroke="#1f2c3c"/>
+              <line x1="100" y1="150" x2="100" y2="10" stroke="#1f2c3c"/>
+              <g id="panCone" class="cone"><path d="M100 150 L60 18 A140 140 0 0 1 140 18 Z" fill="rgba(255,153,0,.22)" stroke="#FF9900" stroke-width="1.2"/></g>
+              <circle cx="100" cy="150" r="13" fill="#232F3E" stroke="#00A1C9" stroke-width="2"/><circle cx="100" cy="150" r="4" fill="#00A1C9"/>
+            </svg></div>
+          <div class="view"><div class="vt">VISTA LATERAL · TILT</div>
+            <svg viewBox="0 0 200 190">
+              <line x1="0" y1="165" x2="200" y2="165" stroke="#2b3a4d" stroke-width="2"/>
+              <rect x="30" y="140" width="30" height="25" fill="#2c3b4f"/>
+              <g id="tiltCone" class="cone"><path d="M60 128 L190 70 L190 186 Z" fill="rgba(0,161,201,.2)" stroke="#00A1C9" stroke-width="1.2"/></g>
+              <circle cx="60" cy="128" r="13" fill="#232F3E" stroke="#FF9900" stroke-width="2"/><circle cx="60" cy="128" r="4" fill="#FF9900"/>
+            </svg></div>
+        </div>
+        <div class="readout">
+          PAN <span class="val" id="panVal">0°</span> TILT <span class="val" id="tiltVal">0°</span>
+          <div class="pad">
+            <button class="up" data-d="up" aria-label="Inclinar arriba">▲</button><button class="lf" data-d="left" aria-label="Giro izquierda">◀</button>
+            <button class="dn" data-d="down" aria-label="Inclinar abajo">▼</button><button class="rt" data-d="right" aria-label="Giro derecha">▶</button>
+          </div>
+        </div>
+        <div class="pins"><span class="tag">GPIO 18 → PAN</span><span class="tag">GPIO 19 → TILT</span><span class="tag blue">5V + GND</span><span class="tag green">Wi-Fi 2.4 GHz</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============== 4. ARCHITECTURE =============== -->
+  <section class="slide" id="s4" data-steps="5">
+    <div class="kicker rv" style="--i:0">04 // El pipeline</div>
+    <h2 class="rv" style="--i:1">De un lente de los 90 a una <em>alerta en la nube</em></h2>
+    <div class="diagram rv" style="--i:2">
+      <svg id="diagram" viewBox="0 0 1120 380" preserveAspectRatio="xMidYMid meet" aria-label="Diagrama de arquitectura">
+        <!-- Edges (paths are also used as rails for the animated packets) -->
+        <path id="e0" class="edge" d="M190 190 L240 190"/>
+        <path id="e1" class="edge" d="M410 190 L460 190"/>
+        <path id="e2" class="edge" d="M630 190 C665 190 665 70 700 70"/>
+        <path id="e3" class="edge" d="M630 190 C665 190 665 310 700 310"/>
+        <path id="e4" class="edge" d="M870 70 C900 70 900 190 930 190"/>
+        <path id="e5" class="edge" d="M870 310 C900 310 900 190 930 190"/>
+        <g id="packets"></g>
+
+        <!-- Nodes -->
+        <g class="node" id="n0" transform="translate(20,148)">
+          <rect class="body" width="170" height="84" rx="12"/>
+          <text class="ty" x="14" y="24" fill="#EC7211">BORDE</text>
+          <circle class="status-dot" cx="152" cy="20" r="4"/>
+          <text class="nm" x="14" y="50">ESP32 + Cámara</text><text class="sb" x="14" y="70">pan/tilt · cuadros</text>
+        </g>
+        <g class="node" id="n1" transform="translate(240,148)">
+          <rect class="body" width="170" height="84" rx="12"/>
+          <text class="ty" x="14" y="24" fill="#FF9900">INGESTA</text>
+          <text class="nm" x="14" y="50">Amazon Kinesis</text><text class="sb" x="14" y="70">streaming de cuadros</text>
+        </g>
+        <g class="node" id="n2" transform="translate(460,148)">
+          <rect class="body" width="170" height="84" rx="12"/>
+          <text class="ty" x="14" y="24" fill="#FF9900">CÓMPUTO</text>
+          <text class="nm" x="14" y="50">AWS Lambda</text><text class="sb" x="14" y="70">sin servidores</text>
+        </g>
+        <g class="node" id="n3" transform="translate(700,28)">
+          <rect class="body" width="170" height="84" rx="12"/>
+          <text class="ty" x="14" y="24" fill="#4cc9ea">VISIÓN · IA</text>
+          <text class="nm" x="14" y="50">Rekognition</text><text class="sb" x="14" y="70">+ YOLO · ¿persona?</text>
+        </g>
+        <g class="node" id="n4" transform="translate(700,268)">
+          <rect class="body" width="170" height="84" rx="12"/>
+          <text class="ty" x="14" y="24" fill="#4ade80">ALMACÉN</text>
+          <text class="nm" x="14" y="50">Amazon S3</text><text class="sb" x="14" y="70">fotos · evidencia</text>
+        </g>
+        <g class="node" id="n5" transform="translate(930,148)">
+          <circle class="pulse" cx="85" cy="42" r="60"/><circle class="pulse p2" cx="85" cy="42" r="60"/>
+          <rect class="body" width="170" height="84" rx="12"/>
+          <text class="ty" x="14" y="24" fill="#FF5C5C">ALERTA</text>
+          <circle class="status-dot" cx="152" cy="20" r="4"/>
+          <text class="nm" x="14" y="50">Amazon SNS</text><text class="sb" x="14" y="70">push · SMS · correo</text>
+        </g>
+      </svg>
+    </div>
+    <div class="caption rv" style="--i:3">
+      <div class="stepn" id="capStep">PASO 0 / 5</div>
+      <div><h4 id="capTitle"></h4><p id="capText"></p></div>
+      <div class="dots" id="capDots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </section>
+
+  <!-- =============== 5. WHY AWS =============== -->
+  <section class="slide" id="s5">
+    <div class="kicker rv" style="--i:0">05 // Por qué AWS</div>
+    <h2 class="rv" style="--i:1">Resuelve el problema,<br>no los <em>servidores</em></h2>
+    <div class="grid3">
+      <div class="card benefit rv" style="--i:2"><div class="bi">💸</div><h3>Pagas lo que usas</h3><p>Una cámara de hobby no necesita un centro de datos. El tiempo ocioso casi no cuesta.</p><span class="tag">pago por uso</span></div>
+      <div class="card benefit rv" style="--i:3"><div class="bi">📈</div><h3>Escala sin reescribir</h3><p>Una cámara hoy, cincuenta mañana. Kinesis y Lambda escalan solos.</p><span class="tag">elástico</span></div>
+      <div class="card benefit rv" style="--i:4"><div class="bi">🧹</div><h3>Cero servidores que cuidar</h3><p>Sin parches, sin SSH, sin reinicios a las 3 AM. Mantenemos código, no máquinas.</p><span class="tag">serverless</span></div>
+      <div class="card benefit rv" style="--i:5"><div class="bi">🔌</div><h3>Los servicios se enchufan</h3><p>S3 dispara Lambda. Lambda llama a Rekognition. Rekognition alimenta SNS. Todo nativo.</p><span class="tag blue">orientado a eventos</span></div>
+      <div class="card benefit rv" style="--i:6"><div class="bi">⚡</div><h3>Prototipos en días</h3><p>La visión por computadora es una llamada a una API, no un proyecto de investigación. Las ideas se vuelven demos rápido.</p><span class="tag blue">IA administrada</span></div>
+      <div class="card benefit rv" style="--i:7"><div class="bi">🔐</div><h3>Seguridad desde el día uno</h3><p>Roles IAM y cifrado por defecto: mínimo privilegio para cada pieza.</p><span class="tag green">IAM</span></div>
+    </div>
+    <p class="punch rv" style="--i:8">// menos <b>ops</b>, más <b>maker</b>.</p>
+  </section>
+
+  <!-- =============== 6. LESSONS =============== -->
+  <section class="slide" id="s6">
+    <div class="kicker rv" style="--i:0">06 // Bitácora</div>
+    <h2 class="rv" style="--i:1">Qué se rompió, qué <em>aprendimos</em></h2>
+    <div class="cols">
+      <div class="chal">
+        <div class="card rv" style="--i:2"><div class="q">🔗 Lo viejo conoce lo nuevo <span class="tag">hardware</span></div><div class="a">Una cámara de los 90 no tiene API ni Wi-Fi. <b>El ESP32 fue el traductor</b> entre el hardware viejo y la nube.</div></div>
+        <div class="card rv" style="--i:3"><div class="q">⏱️ Cada salto suma latencia <span class="tag blue">nube</span></div><div class="a">Cámara → stream → función → IA → alerta. <b>Enviar cuadros pequeños y filtrar temprano</b> para que la alerta se sienta en tiempo real.</div></div>
+        <div class="card rv" style="--i:4"><div class="q">🧩 Tres mundos, un sistema <span class="tag">integración</span></div><div class="a">Hardware, YOLO y AWS hablan idiomas distintos. <b>Acordar un formato de mensaje simple</b> entre cada etapa.</div></div>
+        <div class="card rv" style="--i:5"><div class="q">🔔 Demasiadas falsas alarmas <span class="tag green">ajuste</span></div><div class="a">Un gato no es un intruso. <b>Los umbrales de confianza</b> deciden qué vale la pena para despertar a alguien.</div></div>
+      </div>
+      <div class="term rv" style="--i:4; align-self:start">
+        <div class="bar"><i></i><i></i><i></i><span>lista_maker.md</span></div>
+        <pre class="c-o">$ como-hacer-el-tuyo</pre>
+        <ul class="checks">
+          <li>Primero mueve un servo. La nube, después.</li>
+          <li>Sube un cuadro a S3 antes de usar IA.</li>
+          <li>Una Lambda, un trabajo.</li>
+          <li>IAM de mínimo privilegio, siempre.</li>
+          <li>Pon una alarma de facturación el día uno.</li>
+          <li>Registra todo en CloudWatch.</li>
+          <li>Ajusta umbrales con video real.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============== 7. CLOSING / Q&A =============== -->
+  <section class="slide" id="s7">
+    <div class="q-big rv" style="--i:0">?</div>
+    <h2 class="rv" style="--i:1">¿Preguntas?</h2>
+    <div class="wrap-up">
+      <div class="card rv" style="--i:2"><div class="ic">♻️</div><p><b>Rescata</b> hardware viejo en lugar de tirarlo.</p></div>
+      <div class="card rv" style="--i:3"><div class="ic">🧠</div><p><b>Cerebros baratos</b> como el ESP32 conectan cualquier cosa.</p></div>
+      <div class="card rv" style="--i:4"><div class="ic">☁️</div><p><b>La nube</b> convierte un aparato en un sistema inteligente.</p></div>
+    </div>
+    <p class="thanks rv" style="--i:5">$ echo "¡Gracias!" <b>&#10003;</b></p>
+  </section>
+
+</main>
+
+<script>
+/* =====================================================================
+   Presentation engine + per-slide behaviours.
+   Everything is wrapped in an IIFE; no globals leak, no external deps.
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  var stage = document.getElementById('stage');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var progress = document.getElementById('progress');
+  var counter = document.getElementById('counter');
+  var prevBtn = document.getElementById('prev');
+  var nextBtn = document.getElementById('next');
+  var current = -1;
+
+  /* ---------- Scale the 1280x720 stage to the window ---------- */
+  function fit() {
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  /* ---------- Navigation ---------- */
+  function go(n, fromEnd) {
+    n = Math.max(0, Math.min(total - 1, n));
+    if (n === current) return;
+    var prev = current;
+    slides.forEach(function (s, i) {
+      s.classList.toggle('active', i === n);
+      s.classList.toggle('before', i < n);
+    });
+    current = n;
+    progress.style.width = ((n + 1) / total * 100) + '%';
+    counter.textContent = (n + 1) + ' / ' + total;
+    prevBtn.disabled = n === 0;
+    nextBtn.disabled = n === total - 1;
+    try { history.replaceState(null, '', '#' + (n + 1)); } catch (e) { /* file:// may refuse */ }
+    onEnter(n, prev, fromEnd);
+  }
+
+  /* Slide 4 has internal "steps"; arrow keys consume them before changing slide. */
+  function next() {
+    if (current === 3 && arch.step < arch.max) { arch.setStep(arch.step + 1); return; }
+    go(current + 1);
+  }
+  function prev() {
+    if (current === 3 && arch.step > 0) { arch.setStep(arch.step - 1); return; }
+    go(current - 1, true);
+  }
+
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowDown': case 'PageDown': case ' ': case 'Enter':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp': case 'Backspace':
+        e.preventDefault(); prev(); break;
+      case 'Home': go(0); break;
+      case 'End': go(total - 1); break;
+      case 'f': case 'F': toggleFs(); break;
+    }
+  });
+
+  /* Touch swipe */
+  var tx = null;
+  document.addEventListener('touchstart', function (e) { tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (tx === null) return;
+    var dx = e.changedTouches[0].clientX - tx; tx = null;
+    if (Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
+  }, { passive: true });
+
+  /* Fullscreen */
+  function toggleFs() {
+    try {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    } catch (e) { /* unsupported */ }
+  }
+  document.getElementById('fs').addEventListener('click', toggleFs);
+
+  /* Prevent buttons keeping focus (so Space doesn't re-click them) */
+  document.querySelectorAll('button').forEach(function (b) {
+    b.addEventListener('mouseup', function () { b.blur(); });
+  });
+
+  /* ---------- Slide 1: typed boot line ---------- */
+  var bootEl = document.getElementById('bootText');
+  var bootTimer = null;
+  function typeBoot() {
+    var txt = 'hacklab@retro-cam:~$ ./arrancar --reutilizar --nube';
+    var i = 0;
+    clearInterval(bootTimer);
+    bootEl.textContent = '';
+    bootTimer = setInterval(function () {
+      bootEl.textContent = txt.slice(0, ++i);
+      if (i >= txt.length) clearInterval(bootTimer);
+    }, 38);
+  }
+
+  /* ---------- Slide 2: count-up numbers ---------- */
+  function countUp() {
+    document.querySelectorAll('[data-count]').forEach(function (el) {
+      var target = parseFloat(el.dataset.count), dec = parseInt(el.dataset.dec || '0', 10);
+      var t0 = null, dur = 1400;
+      el.textContent = (0).toFixed(dec);
+      function tick(ts) {
+        if (t0 === null) t0 = ts + 700;           // wait for entrance stagger
+        var p = Math.max(0, Math.min(1, (ts - t0) / dur));
+        var eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = (target * eased).toFixed(dec);
+        if (p < 1 && current === 1) requestAnimationFrame(tick);
+        else if (p >= 1) el.textContent = target.toFixed(dec);
+      }
+      requestAnimationFrame(tick);
+    });
+  }
+
+  /* ---------- Slide 3: pan / tilt rig ---------- */
+  var rig = (function () {
+    var pan = 0, tilt = 0;           // degrees
+    var manualUntil = 0;
+    var panCone = document.getElementById('panCone');
+    var tiltCone = document.getElementById('tiltCone');
+    var panVal = document.getElementById('panVal');
+    var tiltVal = document.getElementById('tiltVal');
+    var running = false;
+
+    function render() {
+      panCone.setAttribute('transform', 'rotate(' + pan + ' 100 150)');
+      tiltCone.setAttribute('transform', 'rotate(' + (-tilt) + ' 60 128)');
+      panVal.textContent = (pan > 0 ? '+' : '') + Math.round(pan) + '°';
+      tiltVal.textContent = (tilt > 0 ? '+' : '') + Math.round(tilt) + '°';
+    }
+    function loop(ts) {
+      if (!running) return;
+      if (ts > manualUntil) {         // auto-sweep while nobody is driving
+        pan = Math.sin(ts / 1500) * 55;
+        tilt = Math.sin(ts / 2300 + 1) * 22;
+      }
+      render();
+      requestAnimationFrame(loop);
+    }
+    document.querySelectorAll('.pad button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        manualUntil = performance.now() + 4000;
+        var d = b.dataset.d;
+        if (d === 'left') pan = Math.max(-60, pan - 10);
+        if (d === 'right') pan = Math.min(60, pan + 10);
+        if (d === 'up') tilt = Math.min(30, tilt + 8);
+        if (d === 'down') tilt = Math.max(-30, tilt - 8);
+        render();
+      });
+    });
+    return {
+      start: function () { if (!running) { running = true; requestAnimationFrame(loop); } },
+      stop: function () { running = false; }
+    };
+  })();
+
+  /* ---------- Slide 4: animated architecture ---------- */
+  var arch = (function () {
+    var svg = document.getElementById('diagram');
+    var packetsG = document.getElementById('packets');
+    var NS = 'http://www.w3.org/2000/svg';
+    var NODES = ['n0', 'n1', 'n2', 'n3', 'n4', 'n5'];
+    // Which edges each step reveals
+    var STEP_EDGES = [[], ['e0'], ['e1'], ['e2'], ['e3'], ['e4', 'e5']];
+    var COPY = [
+      ['La cámara y el ESP32', 'La cámara rescatada de los 90 ve. El ESP32 la apunta (pan/tilt) y captura cuadros.'],
+      ['Los cuadros llegan a Amazon Kinesis', 'Un flujo duradero y ordenado. Los cuadros se ingieren en tiempo real y no se pierde nada si el resto va lento.'],
+      ['Lambda despierta bajo demanda', 'Cada lote de cuadros dispara una función. Sin servidor que administrar y sin costo mientras la sala está vacía.'],
+      ['Rekognition + YOLO buscan personas', 'YOLO detecta objetos rápido; Amazon Rekognition confirma qué hay en el cuadro. Juntos dan una "persona" con confianza.'],
+      ['S3 guarda la evidencia', 'Las fotos se guardan con fecha y hora, listas para revisar después. Baratas, duraderas y versionadas.'],
+      ['SNS suena la alarma', 'Una detección sobre el umbral se publica en SNS, que la envía al celular, correo o SMS en segundos.']
+    ];
+    var nodes = NODES.map(function (id) { return document.getElementById(id); });
+    var edges = ['e0','e1','e2','e3','e4','e5'].map(function (id) { return document.getElementById(id); });
+    var capStep = document.getElementById('capStep');
+    var capTitle = document.getElementById('capTitle');
+    var capText = document.getElementById('capText');
+    var dots = document.querySelectorAll('#capDots i');
+    var api = { step: 0, max: 5 };
+    var pkts = [];                 // active packets
+    var running = false, lastSpawn = 0;
+
+    api.setStep = function (s) {
+      api.step = s;
+      nodes.forEach(function (n, i) {
+        n.classList.toggle('on', i <= s);
+        n.classList.toggle('focus', i === s);
+        n.classList.toggle('alarm', i === 5 && s >= 5);
+      });
+      edges.forEach(function (e) { e.classList.remove('on'); });
+      for (var k = 1; k <= s; k++) STEP_EDGES[k].forEach(function (id) { document.getElementById(id).classList.add('on'); });
+      capStep.textContent = 'PASO ' + s + ' / 5';
+      capTitle.textContent = COPY[s][0];
+      capText.textContent = COPY[s][1];
+      dots.forEach(function (d, i) { d.classList.toggle('on', i <= s); });
+    };
+
+    function spawn(edgeId, blue) {
+      var path = document.getElementById(edgeId);
+      var c = document.createElementNS(NS, 'circle');
+      c.setAttribute('r', '5.5');
+      c.setAttribute('class', 'pkt' + (blue ? ' blue' : ''));
+      packetsG.appendChild(c);
+      pkts.push({ el: c, path: path, len: path.getTotalLength(), t0: null, dur: 900 + path.getTotalLength() * 2 });
+    }
+    function frame(ts) {
+      if (!running) return;
+      // spawn a new wave every ~1.3 s on every visible edge
+      if (ts - lastSpawn > 1300) {
+        lastSpawn = ts;
+        for (var k = 1; k <= api.step; k++) STEP_EDGES[k].forEach(function (id) { spawn(id, k >= 3 && k !== 4); });
+        if (api.step >= 1) { /* edge from camera appears at step 1 */ }
+      }
+      for (var i = pkts.length - 1; i >= 0; i--) {
+        var p = pkts[i];
+        if (p.t0 === null) p.t0 = ts;
+        var u = (ts - p.t0) / p.dur;
+        if (u >= 1) { packetsG.removeChild(p.el); pkts.splice(i, 1); continue; }
+        var pt = p.path.getPointAtLength(u * p.len);
+        p.el.setAttribute('cx', pt.x); p.el.setAttribute('cy', pt.y);
+        p.el.setAttribute('opacity', Math.min(1, u * 6, (1 - u) * 6));
+      }
+      requestAnimationFrame(frame);
+    }
+    api.start = function () { if (!running) { running = true; lastSpawn = 0; requestAnimationFrame(frame); } };
+    api.stop = function () {
+      running = false;
+      pkts.forEach(function (p) { if (p.el.parentNode) p.el.parentNode.removeChild(p.el); });
+      pkts = [];
+    };
+    api.setStep(0);
+    return api;
+  })();
+
+  /* ---------- Per-slide enter hook ---------- */
+  function onEnter(n, prev, fromEnd) {
+    if (n === 0) typeBoot();
+    if (n === 1) countUp();
+    if (n === 2) rig.start(); else rig.stop();
+    if (n === 3) {
+      arch.setStep(fromEnd ? arch.max : 0);   // coming back from slide 5 → show full diagram
+      arch.start();
+    } else arch.stop();
+  }
+
+  /* ---------- Boot ---------- */
+  var start = parseInt((location.hash || '').replace('#', ''), 10);
+  go(isNaN(start) ? 0 : start - 1);
+  window.addEventListener('hashchange', function () {
+    var h = parseInt(location.hash.replace('#', ''), 10);
+    if (!isNaN(h)) go(h - 1);
+  });
+})();
+</script>
+</body>
+</html>
